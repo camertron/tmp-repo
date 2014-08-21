@@ -7,6 +7,11 @@ describe TmpRepo do
     TmpRepo.new
   end
 
+  before(:each) do
+    repo.git('config user.email tester@tester.com')
+    repo.git('config user.name Tester McTesterson')
+  end
+
   after(:each) do
     repo.unlink
   end
