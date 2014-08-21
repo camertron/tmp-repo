@@ -1,7 +1,7 @@
 tmp-repo
 ========
 
-Creates and manages a git repository in the operating system's temporary directory. Useful for running git operations in tests.
+Creates and manages git repositories in the operating system's temporary directory. It does this by providing a thin wrapper around the git binary that's pointed at a randomly generated temporary folder.
 
 ## Installation
 
@@ -15,14 +15,14 @@ require 'tmp-repo'
 
 ### Basics
 
-Creating a new `TmpRepo` will automatically choose a folder in your system's temp directory and initialize a git repository in it:
+Creating a new `TmpRepo` will automatically create a randomly named folder in your system's temp directory and initialize a git repository in it:
 
 ```ruby
 repo = TmpRepo.new
 repo.working_dir # => #<Pathname:/var/folders/3x/n10r69b16bq_rlcqr3fy0rwc0000gn/T/b068487773901ffe23e66a8259711fa1>
 ```
 
-Once created, you can ask your `TmpRepo` questions and perform operations. Don't forget to clean up after yourself when you're finished:
+Once created, you can ask your `TmpRepo` questions and perform operations on it. Don't forget to clean up after yourself when you're finished:
 
 ```ruby
 repo.unlink
@@ -87,6 +87,22 @@ status = repo.status
 status[:new_file]  # => ['file1.txt', 'file2.txt']
 status[:deleted]   # => ['file3.txt']
 status[:modified]  # => ['file4.txt']
+```
+
+### Custom Commands
+
+This library only provides wrapper methods around the most common git commands. To run additional git commands, use the `git` method:
+
+```ruby
+repo.git('rebase master')
+```
+
+In addition, the lower-level `in_repo` method wraps the given block in a `Dir.chdir`, meaning the block is executed in the context of the repo's working directory:
+
+```ruby
+repo.in_repo do
+  `ls`  # list files in the repo's working directory
+end
 ```
 
 ## Requirements
