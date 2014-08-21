@@ -1,6 +1,8 @@
 tmp-repo
 ========
 
+[![Build Status](https://travis-ci.org/camertron/tmp-repo.svg?branch=master)](http://travis-ci.org/camertron/tmp-repo)
+
 Creates and manages git repositories in the operating system's temporary directory. It does this by providing a thin wrapper around the git binary that's pointed at a randomly generated temporary folder.
 
 ## Installation
