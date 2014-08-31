@@ -6,13 +6,19 @@ require 'fileutils'
 require 'securerandom'
 
 class TmpRepo
+  DEFAULT_GIT_EXECUTABLE = 'git'
+
   class GitError < StandardError; end
 
   attr_reader :working_dir
 
-  def initialize
+  def self.random_dir
+    File.join(Dir.tmpdir, SecureRandom.hex(16))
+  end
+
+  def initialize(dir = nil)
     @working_dir = Pathname(
-      File.join(Dir.tmpdir, SecureRandom.hex(16))
+      dir || self.class.random_dir
     )
 
     FileUtils.mkdir_p(working_dir)
@@ -62,7 +68,7 @@ class TmpRepo
 
   def git(command)
     in_repo do
-      output = `git #{command}`
+      output = `#{git_executable} #{command}`
 
       if $?.exitstatus != 0
         raise GitError, output
@@ -79,6 +85,10 @@ class TmpRepo
   end
 
   private
+
+  def git_executable
+    DEFAULT_GIT_EXECUTABLE
+  end
 
   def parse_status(status_text)
     lines = status_text.split("\n")
