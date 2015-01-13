@@ -68,7 +68,7 @@ class TmpRepo
 
   def git(command)
     in_repo do
-      output = `#{git_executable} #{command}`
+      output = `#{git_executable} #{command} 2>&1`
 
       if $?.exitstatus != 0
         raise GitError, output
@@ -123,5 +123,5 @@ class TmpRepo
 
   def create_status_hash
     { modified: [], deleted: [], new_file: [] }
-  end  
+  end
 end
