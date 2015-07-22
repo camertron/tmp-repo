@@ -42,6 +42,10 @@ class TmpRepo
     end
   end
 
+  def each_commit_id(&block)
+    git('log --pretty=format:%H').strip.split("\n").each(&block)
+  end
+
   def add_all
     git('add -A')
   end
@@ -71,7 +75,7 @@ class TmpRepo
       output = `#{git_executable} #{command} 2>&1`
 
       if $?.exitstatus != 0
-        raise GitError, output
+        raise GitError, output.strip
       end
 
       output

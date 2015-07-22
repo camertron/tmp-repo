@@ -6,3 +6,7 @@
 
 * More easily overridable reference to git executable.
 * Added ability to pass in desired working directory instead of always generating a new random one.
+
+== 1.1.0
+
+* Added TmpRepo#each_commit_id to iterate over commits in the repo.

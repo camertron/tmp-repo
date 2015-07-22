@@ -16,12 +16,6 @@ describe TmpRepo do
     repo.unlink
   end
 
-  def in_repo
-    Dir.chdir(repo.working_dir.to_s) do
-      yield
-    end
-  end
-
   describe '#initialize' do
     it 'should initialize the repository' do
       expect(repo.working_dir.join('.git')).to exist
@@ -57,12 +51,29 @@ describe TmpRepo do
     end
   end
 
+  describe '#each_commit_id' do
+    it 'yields commit ids one at a time' do
+      repo.create_file('foo.txt') { |f| f.write('foobar') }
+      repo.add_all
+      repo.commit('first commit')
+
+      repo.create_file('bar.txt') { |f| f.write('baz') }
+      repo.add_all
+      repo.commit('second commit')
+
+      first_id = repo.git('rev-parse HEAD').strip
+      second_id = repo.git('rev-parse HEAD~1').strip
+
+      expect(repo.each_commit_id.to_a).to eq([first_id, second_id])
+    end
+  end
+
   describe '#add_all' do
     it 'stages all files' do
       repo.create_file('foo.txt') { |f| f.write('foobar') }
       repo.add_all
 
-      in_repo do
+      repo.in_repo do
         expect(`git status`).to match(/new file:[\s]+foo\.txt/)
       end
     end
@@ -74,7 +85,7 @@ describe TmpRepo do
       repo.add_all
       repo.commit('Committing foobar')
 
-      in_repo do
+      repo.in_repo do
         expect(`git log`).to match(/Committing foobar/)
         expect(`git show --name-only HEAD`).to include('foo.txt')
       end
@@ -93,14 +104,14 @@ describe TmpRepo do
 
     describe '#checkout' do
       it 'checks out the given branch' do
-        in_repo do
+        repo.in_repo do
           `git checkout -b my_branch && git checkout master`
           expect(`git rev-parse --abbrev-ref HEAD`.strip).to eq('master')
         end
 
         repo.checkout('my_branch')
 
-        in_repo do
+        repo.in_repo do
           expect(`git rev-parse --abbrev-ref HEAD`.strip).to eq('my_branch')
         end
       end
@@ -110,7 +121,7 @@ describe TmpRepo do
       it 'creates a new branch' do
         repo.create_branch('new_branch')
 
-        in_repo do
+        repo.in_repo do
           expect(`git branch`).to include('new_branch')
         end
       end
@@ -118,7 +129,7 @@ describe TmpRepo do
 
     describe '#current_branch' do
       it 'returns the current branch name' do
-        in_repo { `git checkout -b cool_branch` }
+        repo.in_repo { `git checkout -b cool_branch` }
         expect(repo.current_branch).to eq('cool_branch')
       end
     end
@@ -145,7 +156,7 @@ describe TmpRepo do
       end
 
       it 'shows modified files' do
-        in_repo do
+        repo.in_repo do
           File.open('foo.txt', 'w+') do |f|
             f.write("\nI'm a change!")
           end
@@ -159,7 +170,7 @@ describe TmpRepo do
       end
 
       it 'shows deleted files' do
-        in_repo do
+        repo.in_repo do
           File.unlink('foo.txt')
           repo.add_all
 
